@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"N0el4kLs/cyberetrieve/sources"
+	"github.com/N0el4kLs/cyberetrieve/sources"
 
 	"github.com/projectdiscovery/gologger"
 )

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"N0el4kLs/cyberetrieve"
-	"N0el4kLs/cyberetrieve/sources"
+	"github.com/N0el4kLs/cyberetrieve"
+	"github.com/N0el4kLs/cyberetrieve/sources"
 )
 
 func main() {
