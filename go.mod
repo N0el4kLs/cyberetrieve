@@ -1,4 +1,4 @@
-module N0el4kLs/cyberetrieve
+module github.com/N0el4kLs/cyberetrieve
 
 go 1.21
 

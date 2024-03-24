@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sync"
 
-	"N0el4kLs/cyberetrieve/sources"
-	"N0el4kLs/cyberetrieve/sources/fofa"
-	"N0el4kLs/cyberetrieve/sources/quake"
+	"github.com/N0el4kLs/cyberetrieve/sources"
+	"github.com/N0el4kLs/cyberetrieve/sources/fofa"
+	"github.com/N0el4kLs/cyberetrieve/sources/quake"
 
 	"github.com/projectdiscovery/gologger"
 )
