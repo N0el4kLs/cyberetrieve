@@ -14,12 +14,18 @@ Cyber-Retrieve 是使用Go实现的网络空间搜索引擎的第三方包, 用�
 
 ## 使用
 
+安装
+```shell
+go get -u github.com/N0el4kLs/cyberetrieve
+```
+
+使用案例:
 ```go
 import (
-	"fmt"
+    "fmt"
 
-	"cyberetrieve"
-	"cyberetrieve/sources"
+    "github.com/N0el4kLs/cyberetrieve"
+    "github.com/N0el4kLs/cyberetrieve/sources"
 )
 
 func main() {
@@ -43,4 +49,4 @@ func main() {
 	}
 }
 ```
-更多使用案例可以去[example](./example)查看
+更多使用案例可以前往[example](./example)查看
