@@ -6,6 +6,7 @@ type Query struct {
 	Query         string `json:"query"`           // input query
 	QuakeQuery    string `json:"quake_query"`     // input query to quake query grammar
 	FofaQuery     string `json:"fofa_query"`      // input query to fofa query grammar
+	HunterQuery   string `json:"hunter_query"`    // input query to hunter query grammar
 	NumberOfQuery int    `json:"number_of_query"` // number of query
 }
 

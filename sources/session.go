@@ -6,4 +6,5 @@ package sources
 type Session struct {
 	QuakeToken string
 	FofaKey    string
+	HunterKey  string
 }

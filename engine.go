@@ -7,6 +7,7 @@ import (
 
 	"github.com/N0el4kLs/cyberetrieve/sources"
 	"github.com/N0el4kLs/cyberetrieve/sources/fofa"
+	"github.com/N0el4kLs/cyberetrieve/sources/hunter"
 	"github.com/N0el4kLs/cyberetrieve/sources/quake"
 
 	"github.com/projectdiscovery/gologger"
@@ -17,6 +18,7 @@ type EngineMode uint8
 const (
 	ModeQuake EngineMode = 1 << (8 - 1 - iota)
 	ModeFofa
+	ModeHunter
 )
 
 // EngineOption is a type for setting options for the engine
@@ -100,6 +102,12 @@ func WithQuakeSearch() EngineOption {
 	}
 }
 
+func WithHunterSearch() EngineOption {
+	return func(c *CyberRetrieveEngine) {
+		c.searchMode = c.searchMode | ModeHunter
+	}
+}
+
 // WithAutoGrammar this function is used to set the auto grammar option
 func WithAutoGrammar() EngineOption {
 	return func(c *CyberRetrieveEngine) {
@@ -154,8 +162,9 @@ func (c *CyberRetrieveEngine) retrieve() error {
 
 			query := c.Query
 			queryMap := map[string]string{
-				quake.QUAKE: query.QuakeQuery,
-				fofa.FOFA:   query.FofaQuery,
+				quake.QUAKE:   query.QuakeQuery,
+				fofa.FOFA:     query.FofaQuery,
+				hunter.HUNTER: query.HunterQuery,
 			}
 
 			// if autoGrammar is on, and corresponding engine's query is empty,
@@ -168,6 +177,8 @@ func (c *CyberRetrieveEngine) retrieve() error {
 						query.QuakeQuery = prdGrammar
 					case fofa.FOFA:
 						query.FofaQuery = prdGrammar
+					case hunter.HUNTER:
+						query.HunterQuery = prdGrammar
 					}
 					gologger.Info().Msgf("Provider %s search grammar: %s\n", provider.Name(), prdGrammar)
 				}
@@ -232,6 +243,16 @@ func (c *CyberRetrieveEngine) checkSession() error {
 		c.providers = append(c.providers, provider)
 		engineNum++
 	}
+	if c.searchMode&ModeHunter == ModeHunter {
+		provider := &hunter.Provider{}
+		gologger.Info().Msgf("Check %s authorization,wait a second...\n", provider.Name())
+		if ok := provider.Auth(c.sessions); !ok {
+			errorMsg := fmt.Sprintf("%s auth err, please check your quake token", provider.Name())
+			err = errors.New(errorMsg)
+		}
+		c.providers = append(c.providers, provider)
+		engineNum++
+	}
 	if engineNum == 0 {
 		err = errors.New("please choose a search engine")
 	} else if engineNum > 1 {
@@ -251,6 +272,12 @@ func (c *CyberRetrieveEngine) autoGrammar(query, name string) string {
 		return result
 	case fofa.FOFA:
 		result, err := fofa.ToFofaGrammar(query)
+		if err != nil {
+			gologger.Error().Msgf(err.Error())
+		}
+		return result
+	case hunter.HUNTER:
+		result, err := hunter.ToHunterGrammer(query)
 		if err != nil {
 			gologger.Error().Msgf(err.Error())
 		}
