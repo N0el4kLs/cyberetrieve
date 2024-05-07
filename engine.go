@@ -3,6 +3,7 @@ package cyberetrieve
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/N0el4kLs/cyberetrieve/sources"
@@ -58,6 +59,13 @@ type CyberRetrieveEngine struct {
 	// isAutoGrammar is the flag to enable auto grammar,
 	// which will transform the default query into the corresponding format
 	isAutoGrammar bool
+
+	// isDeepSearch is the flag to enable deep search
+	// which will cost many points to detect corresponding targets as many as possible
+	// now not support in Query.Query,
+	// only support in Query.QuakeQuery, Query.FofaQuery, Query.HunterQuery
+	// when use deep search mode, unlimited query number
+	isDeepSearch bool
 }
 
 // NewCyberRetrieveEngine creates a new cyber retrieve engine
@@ -78,6 +86,7 @@ func NewCyberRetrieveEngine(query sources.Query, session sources.Session, engine
 		resultChannel: make(chan sources.Result, bufSize),
 		mutex:         &sync.Mutex{},
 		isAutoGrammar: false,
+		isDeepSearch:  false,
 	}
 	if len(engineOptions) != 0 {
 		for _, opt := range engineOptions {
@@ -85,6 +94,51 @@ func NewCyberRetrieveEngine(query sources.Query, session sources.Session, engine
 		}
 	}
 
+	// set deep search grammar
+	if engine.isDeepSearch {
+
+		// when use deep search mode, unlimited query number
+		engine.Query.NumberOfQuery = -1
+
+		// Todo only handle single keyword now, need to handle multiple keywords later
+		if strings.Contains(engine.Query.Query, "domain") {
+			d := strings.Split(engine.Query.Query, ":")[1]
+			// remove the double quote
+			d = d[1 : len(d)-1]
+			fmt.Println(d)
+			engine.Query.Query = fmt.Sprintf(`%s OR cert:"%s"`, engine.Query.Query, d)
+			fmt.Println("deep search grammar:", engine.Query.Query)
+		}
+
+		if engine.searchMode&ModeQuake == ModeQuake {
+			if strings.Contains(engine.Query.QuakeQuery, "domain") {
+				d := strings.Split(engine.Query.QuakeQuery, ":")[1]
+				// remove the double quote
+				d = d[1 : len(d)-1]
+				engine.Query.QuakeQuery = fmt.Sprintf(`%s OR cert:"%s"`, engine.Query.QuakeQuery, d)
+			}
+		}
+
+		if engine.searchMode&ModeFofa == ModeFofa {
+			if strings.Contains(engine.Query.FofaQuery, "domain") {
+				d := strings.Split(engine.Query.FofaQuery, "=")[1]
+				// remove the double quote
+				d = d[1 : len(d)-1]
+				engine.Query.FofaQuery = fmt.Sprintf(`%s || cert="%s"`, engine.Query.FofaQuery, d)
+			}
+		}
+
+		if engine.searchMode&ModeHunter == ModeHunter {
+			if strings.Contains(engine.Query.HunterQuery, "domain") {
+				d := strings.Split(engine.Query.HunterQuery, "=")[1]
+				// remove the double quote
+				d = d[1 : len(d)-1]
+				engine.Query.HunterQuery = fmt.Sprintf(`%s || cert="%s"`, engine.Query.HunterQuery, d)
+			}
+		}
+	}
+
+	fmt.Printf("all query, %#v \n", engine.Query)
 	return engine
 }
 
@@ -112,6 +166,13 @@ func WithHunterSearch() EngineOption {
 func WithAutoGrammar() EngineOption {
 	return func(c *CyberRetrieveEngine) {
 		c.isAutoGrammar = true
+	}
+}
+
+// WithDeepSearch this function is used to set the deep search option
+func WithDeepSearch() EngineOption {
+	return func(c *CyberRetrieveEngine) {
+		c.isDeepSearch = true
 	}
 }
 
@@ -242,6 +303,7 @@ func (c *CyberRetrieveEngine) checkSession() error {
 		}
 		c.providers = append(c.providers, provider)
 		engineNum++
+
 	}
 	if c.searchMode&ModeHunter == ModeHunter {
 		provider := &hunter.Provider{}

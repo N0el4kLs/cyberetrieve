@@ -59,6 +59,9 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 		if query.NumberOfQuery < DEFAULT_PAGE_SIZE {
 			pageSize = query.NumberOfQuery
 		}
+		if query.NumberOfQuery == -1 {
+			pageSize = 100 // todo need refactor
+		}
 		page := 1
 		for {
 			querySentence := query.Query
@@ -125,7 +128,6 @@ func (p *Provider) query(queryFiled *FofaSearchFiled, results chan *sources.Resu
 			url = fmt.Sprintf("%s://%s", item[4], item[1])
 		}
 		searchResult.URL = url
-		//fmt.Println(item)
 
 		results <- searchResult
 	}
@@ -136,7 +138,7 @@ func (p *Provider) query(queryFiled *FofaSearchFiled, results chan *sources.Resu
 // isOverSize check if the number of result is over the number of query which is required
 func isOverSize(numberOfResult, numberOfQuery int) bool {
 	var isOver = false
-	if numberOfResult >= numberOfQuery {
+	if numberOfResult >= numberOfQuery && numberOfQuery != -1 {
 		isOver = true
 	}
 

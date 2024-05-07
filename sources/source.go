@@ -7,7 +7,7 @@ type Query struct {
 	QuakeQuery    string `json:"quake_query"`     // input query to quake query grammar
 	FofaQuery     string `json:"fofa_query"`      // input query to fofa query grammar
 	HunterQuery   string `json:"hunter_query"`    // input query to hunter query grammar
-	NumberOfQuery int    `json:"number_of_query"` // number of query
+	NumberOfQuery int    `json:"number_of_query"` // number of query, when use deep search mode, unlimited query number
 }
 
 // Provider is the interface for all providers

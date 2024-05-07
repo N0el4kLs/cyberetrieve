@@ -60,6 +60,9 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 		if query.NumberOfQuery < DEFAULT_PAGE_SIZE {
 			pageSize = query.NumberOfQuery
 		}
+		if query.NumberOfQuery == -1 {
+			pageSize = 100 // Todo handle the unlimited query number
+		}
 		for {
 			querySentence := query.Query
 			// If AutoGrammar is on, use transferred grammar
@@ -125,6 +128,17 @@ func (p *Provider) query(queryFiled *QuakeSearchFiled, results chan *sources.Res
 			searchResult.URL = item.Service.Http.HttpLoadUrl[0]
 		}
 		searchResult.Domain = item.Domain
+		if searchResult.URL == "" { // if url is empty, use domain and port to generate url
+			var d string
+			if searchResult.Domain != "" {
+				d = searchResult.Domain
+			} else if searchResult.Host != "" {
+				d = searchResult.Host
+			}
+			if d != "" {
+				searchResult.URL = fmt.Sprintf("http://%s:%d", d, searchResult.Port)
+			}
+		}
 		// Todo more effective way to get icp info
 		if len(item.Service.Http.Icp) > 0 {
 			searchResult.ICPUnit = item.Service.Http.Icp["main_licence"].(map[string]interface{})["unit"].(string)
@@ -143,7 +157,7 @@ func (p *Provider) query(queryFiled *QuakeSearchFiled, results chan *sources.Res
 func isOverSize(numberOfResult, numberOfQuery int, currentSearchResult *QuakeSearchResult) bool {
 	var overSize = false
 
-	if numberOfResult >= numberOfQuery {
+	if numberOfResult >= numberOfQuery && numberOfQuery != -1 {
 		overSize = true
 	}
 

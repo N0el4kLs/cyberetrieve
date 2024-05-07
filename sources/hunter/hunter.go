@@ -56,7 +56,10 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 		if query.NumberOfQuery < DEFAULT_PAGE_SIZE {
 			pageSize = query.NumberOfQuery
 		}
-		if query.NumberOfQuery < 10 {
+		if query.NumberOfQuery == -1 {
+			pageSize = 50
+		}
+		if query.NumberOfQuery < 10 && query.NumberOfQuery != -1 {
 			gologger.Warning().Label("Provider").
 				Msgf("%s query number can't below 10, set query number to 10\n", p.Name())
 			pageSize = 10
@@ -87,7 +90,7 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 			}
 
 			numberOfResult += len(currentSearchResult.Data.Arr)
-			if numberOfResult >= query.NumberOfQuery {
+			if numberOfResult >= query.NumberOfQuery && query.NumberOfQuery != -1 {
 				gologger.Info().Label("Provider").Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
 				break
 			}
