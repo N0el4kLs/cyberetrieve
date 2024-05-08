@@ -11,10 +11,9 @@ import (
 )
 
 const (
-	QUAKE             = "QUAKE"
-	AUTH_URL          = "https://quake.360.cn/api/v3/user/info"
-	SEARCH_URL        = "https://quake.360.cn/api/v3/search/quake_service"
-	DEFAULT_PAGE_SIZE = 30
+	QUAKE      = "QUAKE"
+	AUTH_URL   = "https://quake.360.cn/api/v3/user/info"
+	SEARCH_URL = "https://quake.360.cn/api/v3/search/quake_service"
 )
 
 var (
@@ -56,19 +55,21 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 	go func() {
 		defer close(results)
 		numberOfResult := 0
-		pageSize := DEFAULT_PAGE_SIZE
-		if query.NumberOfQuery < DEFAULT_PAGE_SIZE {
+		pageSize := sources.DEFAULT_PAGE_SIZE
+		if query.NumberOfQuery < pageSize {
 			pageSize = query.NumberOfQuery
 		}
-		if query.NumberOfQuery == -1 {
-			pageSize = 100 // Todo handle the unlimited query number
+		if query.NumberOfQuery > sources.DEFAULT_PAGE_SIZE_MAX || query.NumberOfQuery == -1 {
+			pageSize = sources.DEFAULT_PAGE_SIZE_MAX
 		}
+
 		for {
 			querySentence := query.Query
 			// If AutoGrammar is on, use transferred grammar
 			if query.QuakeQuery != "" {
 				querySentence = query.QuakeQuery
 			}
+			gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
 			queryFiled := NewQuakeSearchFiled(querySentence, numberOfResult, pageSize)
 			currentSearchResult, err := p.query(queryFiled, results)
 			if err != nil { // todo need refactor error handle

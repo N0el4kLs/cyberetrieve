@@ -12,10 +12,9 @@ import (
 )
 
 const (
-	FOFA              = "FOFA"
-	BASE_URL          = "https://fofa.info/api/v1/"
-	AUTH_URL          = "https://fofa.info/api/v1/info/my?key=%s"
-	DEFAULT_PAGE_SIZE = 30
+	FOFA     = "FOFA"
+	BASE_URL = "https://fofa.info/api/v1/"
+	AUTH_URL = "https://fofa.info/api/v1/info/my?key=%s"
 )
 
 var (
@@ -55,13 +54,14 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 	go func() {
 		defer close(results)
 		numberOfResult := 0
-		pageSize := DEFAULT_PAGE_SIZE
-		if query.NumberOfQuery < DEFAULT_PAGE_SIZE {
+		pageSize := sources.DEFAULT_PAGE_SIZE
+		if query.NumberOfQuery < pageSize {
 			pageSize = query.NumberOfQuery
 		}
-		if query.NumberOfQuery == -1 {
-			pageSize = 100 // todo need refactor
+		if query.NumberOfQuery > sources.DEFAULT_PAGE_SIZE_MAX || query.NumberOfQuery == -1 {
+			pageSize = sources.DEFAULT_PAGE_SIZE_MAX
 		}
+
 		page := 1
 		for {
 			querySentence := query.Query
@@ -69,6 +69,7 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 			if query.FofaQuery != "" {
 				querySentence = query.FofaQuery
 			}
+			gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
 			queryFiled := NewFofaSearchFiled(querySentence, page, pageSize)
 
 			currentSearchResult := p.query(queryFiled, results)

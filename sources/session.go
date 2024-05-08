@@ -8,3 +8,8 @@ type Session struct {
 	FofaKey    string
 	HunterKey  string
 }
+
+const (
+	DEFAULT_PAGE_SIZE     = 30
+	DEFAULT_PAGE_SIZE_MAX = 100
+)

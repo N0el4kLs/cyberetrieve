@@ -12,8 +12,6 @@ import (
 const (
 	HUNTER   = "HUNTER"
 	AUTH_URL = "https://hunter.qianxin.com/openApi/search?api-key="
-
-	DEFAULT_PAGE_SIZE = 30
 )
 
 var (
@@ -52,13 +50,14 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 	go func() {
 		defer close(results)
 		numberOfResult := 0
-		pageSize := DEFAULT_PAGE_SIZE
-		if query.NumberOfQuery < DEFAULT_PAGE_SIZE {
+		pageSize := sources.DEFAULT_PAGE_SIZE
+		if query.NumberOfQuery < pageSize {
 			pageSize = query.NumberOfQuery
 		}
-		if query.NumberOfQuery == -1 {
-			pageSize = 50
+		if query.NumberOfQuery > sources.DEFAULT_PAGE_SIZE_MAX || query.NumberOfQuery == -1 {
+			pageSize = sources.DEFAULT_PAGE_SIZE_MAX / 2
 		}
+
 		if query.NumberOfQuery < 10 && query.NumberOfQuery != -1 {
 			gologger.Warning().Label("Provider").
 				Msgf("%s query number can't below 10, set query number to 10\n", p.Name())
@@ -72,7 +71,7 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 			if query.HunterQuery != "" {
 				querySentence = query.HunterQuery
 			}
-
+			gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
 			queryFiled := NewHunterSearchFiled(querySentence, pageNumber, pageSize)
 			pageNumber++
 			currentSearchResult, err := p.query(queryFiled, results)

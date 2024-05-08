@@ -71,6 +71,10 @@ type CyberRetrieveEngine struct {
 // NewCyberRetrieveEngine creates a new cyber retrieve engine
 func NewCyberRetrieveEngine(query sources.Query, session sources.Session, engineOptions ...EngineOption) *CyberRetrieveEngine {
 	bufSize := query.NumberOfQuery
+	if bufSize < 0 {
+		gologger.Fatal().Msgf("query number can't below 0")
+	}
+
 	if bufSize > 1000 {
 		bufSize = bufSize / 50
 	} else if 3 < bufSize && bufSize < 500 {
@@ -105,9 +109,7 @@ func NewCyberRetrieveEngine(query sources.Query, session sources.Session, engine
 			d := strings.Split(engine.Query.Query, ":")[1]
 			// remove the double quote
 			d = d[1 : len(d)-1]
-			fmt.Println(d)
 			engine.Query.Query = fmt.Sprintf(`%s OR cert:"%s"`, engine.Query.Query, d)
-			fmt.Println("deep search grammar:", engine.Query.Query)
 		}
 
 		if engine.searchMode&ModeQuake == ModeQuake {
@@ -138,7 +140,6 @@ func NewCyberRetrieveEngine(query sources.Query, session sources.Session, engine
 		}
 	}
 
-	fmt.Printf("all query, %#v \n", engine.Query)
 	return engine
 }
 
@@ -241,7 +242,7 @@ func (c *CyberRetrieveEngine) retrieve() error {
 					case hunter.HUNTER:
 						query.HunterQuery = prdGrammar
 					}
-					gologger.Info().Msgf("Provider %s search grammar: %s\n", provider.Name(), prdGrammar)
+					//gologger.Info().Msgf("Provider %s search grammar: %s\n", provider.Name(), prdGrammar)
 				}
 			}
 
@@ -320,6 +321,8 @@ func (c *CyberRetrieveEngine) checkSession() error {
 	} else if engineNum > 1 {
 		c.isAutoGrammar = true
 	}
+
+	gologger.Info().Msgf("All search engine authorization check done...\n")
 	return err
 }
 
