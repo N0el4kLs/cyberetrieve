@@ -63,13 +63,14 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 		}
 
 		page := 1
+		querySentence := query.Query
+		// If AutoGrammar is on, use transferred grammar
+		if query.FofaQuery != "" {
+			querySentence = query.FofaQuery
+		}
+		gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
+
 		for {
-			querySentence := query.Query
-			// If AutoGrammar is on, use transferred grammar
-			if query.FofaQuery != "" {
-				querySentence = query.FofaQuery
-			}
-			gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
 			queryFiled := NewFofaSearchFiled(querySentence, page, pageSize)
 
 			currentSearchResult := p.query(queryFiled, results)
@@ -77,7 +78,8 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 
 			if !isValidResult(currentSearchResult) || isOverSize(numberOfResult, query.NumberOfQuery) {
 				// todo need refactor error handle chain
-				gologger.Info().Label("Provider").Msgf("Fofa search done. You've found %d items\n", numberOfResult)
+				gologger.Info().Label("Provider").
+					Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
 				break
 			}
 			page++
