@@ -2,7 +2,10 @@ module github.com/N0el4kLs/cyberetrieve
 
 go 1.21
 
-require github.com/projectdiscovery/gologger v1.1.12
+require (
+	github.com/imroc/req/v3 v3.43.1
+	github.com/projectdiscovery/gologger v1.1.12
+)
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
@@ -13,7 +16,6 @@ require (
 	github.com/google/pprof v0.0.0-20240227163752-401108e1b7e7 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/imroc/req/v3 v3.43.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect

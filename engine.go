@@ -187,7 +187,7 @@ func (c *CyberRetrieveEngine) RetrieveWithChannel() (chan sources.Result, error)
 	}
 }
 
-// RetrieveResult this function return the result with []Result slice type
+// RetrieveResult this function return the result with []sources.Result slice type
 func (c *CyberRetrieveEngine) RetrieveResult() ([]sources.Result, error) {
 	// avoiding resultChannel block
 	go func() {

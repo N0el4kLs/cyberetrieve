@@ -63,32 +63,35 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 			pageSize = sources.DEFAULT_PAGE_SIZE_MAX
 		}
 
+		querySentence := query.Query
+		// If AutoGrammar is on, use transferred grammar
+		if query.QuakeQuery != "" {
+			querySentence = query.QuakeQuery
+		}
+		gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
 		for {
-			querySentence := query.Query
-			// If AutoGrammar is on, use transferred grammar
-			if query.QuakeQuery != "" {
-				querySentence = query.QuakeQuery
-			}
-			gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
 			queryFiled := NewQuakeSearchFiled(querySentence, numberOfResult, pageSize)
 			currentSearchResult, err := p.query(queryFiled, results)
 			if err != nil { // todo need refactor error handle
 				gologger.Error().
 					Label("Provider").
 					Msgf("Quake search error: %s\n", err)
-				gologger.Info().Msgf("Quake search done. You've found %d items\n", numberOfResult)
+				gologger.Info().Label("Provider").
+					Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
 				break
 			}
 
 			if currentSearchResult == nil || len(currentSearchResult.Data) == 0 {
-				gologger.Info().Msgf("Quake search done. You've found %d items\n", numberOfResult)
+				gologger.Info().Label("Provider").
+					Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
 				break
 			}
 
 			numberOfResult += len(currentSearchResult.Data)
 
 			if isOverSize(numberOfResult, query.NumberOfQuery, currentSearchResult) {
-				gologger.Info().Label("Provider").Msgf("Quake search done. You've found %d items\n", numberOfResult)
+				gologger.Info().Label("Provider").
+					Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
 				break
 			}
 		}
