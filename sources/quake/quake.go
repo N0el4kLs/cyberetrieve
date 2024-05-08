@@ -11,10 +11,9 @@ import (
 )
 
 const (
-	QUAKE             = "QUAKE"
-	AUTH_URL          = "https://quake.360.cn/api/v3/user/info"
-	SEARCH_URL        = "https://quake.360.cn/api/v3/search/quake_service"
-	DEFAULT_PAGE_SIZE = 30
+	QUAKE      = "QUAKE"
+	AUTH_URL   = "https://quake.360.cn/api/v3/user/info"
+	SEARCH_URL = "https://quake.360.cn/api/v3/search/quake_service"
 )
 
 var (
@@ -56,16 +55,21 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 	go func() {
 		defer close(results)
 		numberOfResult := 0
-		pageSize := DEFAULT_PAGE_SIZE
-		if query.NumberOfQuery < DEFAULT_PAGE_SIZE {
+		pageSize := sources.DEFAULT_PAGE_SIZE
+		if query.NumberOfQuery < pageSize {
 			pageSize = query.NumberOfQuery
 		}
+		if query.NumberOfQuery > sources.DEFAULT_PAGE_SIZE_MAX || query.NumberOfQuery == -1 {
+			pageSize = sources.DEFAULT_PAGE_SIZE_MAX
+		}
+
 		for {
 			querySentence := query.Query
 			// If AutoGrammar is on, use transferred grammar
 			if query.QuakeQuery != "" {
 				querySentence = query.QuakeQuery
 			}
+			gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
 			queryFiled := NewQuakeSearchFiled(querySentence, numberOfResult, pageSize)
 			currentSearchResult, err := p.query(queryFiled, results)
 			if err != nil { // todo need refactor error handle
@@ -125,6 +129,17 @@ func (p *Provider) query(queryFiled *QuakeSearchFiled, results chan *sources.Res
 			searchResult.URL = item.Service.Http.HttpLoadUrl[0]
 		}
 		searchResult.Domain = item.Domain
+		if searchResult.URL == "" { // if url is empty, use domain and port to generate url
+			var d string
+			if searchResult.Domain != "" {
+				d = searchResult.Domain
+			} else if searchResult.Host != "" {
+				d = searchResult.Host
+			}
+			if d != "" {
+				searchResult.URL = fmt.Sprintf("http://%s:%d", d, searchResult.Port)
+			}
+		}
 		// Todo more effective way to get icp info
 		if len(item.Service.Http.Icp) > 0 {
 			searchResult.ICPUnit = item.Service.Http.Icp["main_licence"].(map[string]interface{})["unit"].(string)
@@ -143,7 +158,7 @@ func (p *Provider) query(queryFiled *QuakeSearchFiled, results chan *sources.Res
 func isOverSize(numberOfResult, numberOfQuery int, currentSearchResult *QuakeSearchResult) bool {
 	var overSize = false
 
-	if numberOfResult >= numberOfQuery {
+	if numberOfResult >= numberOfQuery && numberOfQuery != -1 {
 		overSize = true
 	}
 
