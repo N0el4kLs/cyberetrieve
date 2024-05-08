@@ -64,33 +64,37 @@ func (p *Provider) Search(query *sources.Query) (chan *sources.Result, error) {
 			pageSize = 10
 		}
 		pageNumber := 1
-		for {
-			querySentence := query.Query
 
-			//If AutoGrammar is on, use transferred grammar
-			if query.HunterQuery != "" {
-				querySentence = query.HunterQuery
-			}
-			gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
+		querySentence := query.Query
+		//If AutoGrammar is on, use transferred grammar
+		if query.HunterQuery != "" {
+			querySentence = query.HunterQuery
+		}
+		gologger.Info().Msgf("Provider %s search grammar: %s \n", p.Name(), querySentence)
+
+		for {
 			queryFiled := NewHunterSearchFiled(querySentence, pageNumber, pageSize)
 			pageNumber++
 			currentSearchResult, err := p.query(queryFiled, results)
 			if err != nil {
 				gologger.Error().
 					Label("Provider").
-					Msgf("%s search error: %s\n", p.Name(), err)
-				gologger.Info().Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
+					Msgf("%s search error: %s. You've found %d items\n", p.Name(), err, numberOfResult)
+				//gologger.Info().Label("Provider").
+				//	Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
 				break
 			}
 
 			if currentSearchResult == nil || len(currentSearchResult.Data.Arr) == 0 {
-				gologger.Info().Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
+				gologger.Info().Label("Provider").
+					Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
 				break
 			}
 
 			numberOfResult += len(currentSearchResult.Data.Arr)
 			if numberOfResult >= query.NumberOfQuery && query.NumberOfQuery != -1 {
-				gologger.Info().Label("Provider").Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
+				gologger.Info().Label("Provider").
+					Msgf("%s search done. You've found %d items\n", p.Name(), numberOfResult)
 				break
 			}
 		}
