@@ -106,7 +106,6 @@ func (p *Provider) query(queryFiled *QuakeSearchFiled, results chan *sources.Res
 		"Content-Type": "application/json",
 	}
 	resp, err := sources.DefaultClient.Post(SEARCH_URL, header, queryFiled)
-	//gologger.Debug().Msgf("Quake Search Resp: %s \n", resp.String())
 	if err != nil {
 		gologger.Debug().Msgf("Quake Search Error: %s \n", err)
 		return nil, err
