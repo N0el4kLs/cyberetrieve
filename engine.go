@@ -291,9 +291,10 @@ func (c *CyberRetrieveEngine) checkSession() error {
 		if ok := provider.Auth(c.sessions); !ok {
 			errorMsg := fmt.Sprintf("%s auth err, please check your quake token", provider.Name())
 			err = errors.New(errorMsg)
+		} else {
+			c.providers = append(c.providers, provider)
+			engineNum++
 		}
-		c.providers = append(c.providers, provider)
-		engineNum++
 	}
 	if c.searchMode&ModeFofa == ModeFofa {
 		provider := &fofa.Provider{}
@@ -301,10 +302,10 @@ func (c *CyberRetrieveEngine) checkSession() error {
 		if ok := provider.Auth(c.sessions); !ok {
 			errorMsg := fmt.Sprintf("%s auth err, please check your quake token", provider.Name())
 			err = errors.New(errorMsg)
+		} else {
+			c.providers = append(c.providers, provider)
+			engineNum++
 		}
-		c.providers = append(c.providers, provider)
-		engineNum++
-
 	}
 	if c.searchMode&ModeHunter == ModeHunter {
 		provider := &hunter.Provider{}
@@ -312,9 +313,10 @@ func (c *CyberRetrieveEngine) checkSession() error {
 		if ok := provider.Auth(c.sessions); !ok {
 			errorMsg := fmt.Sprintf("%s auth err, please check your quake token", provider.Name())
 			err = errors.New(errorMsg)
+		} else {
+			c.providers = append(c.providers, provider)
+			engineNum++
 		}
-		c.providers = append(c.providers, provider)
-		engineNum++
 	}
 	if engineNum == 0 {
 		err = errors.New("please choose a search engine")
@@ -323,7 +325,14 @@ func (c *CyberRetrieveEngine) checkSession() error {
 	}
 
 	gologger.Info().Msgf("All search engine authorization check done...\n")
-	return err
+
+	// If have at least one engine can be used, just warning the unauthed engine and return nil
+	if engineNum != 0 && err != nil {
+		gologger.Warning().Msgf("%s\n", err)
+		return nil
+	} else {
+		return err
+	}
 }
 
 func (c *CyberRetrieveEngine) autoGrammar(query, name string) string {
