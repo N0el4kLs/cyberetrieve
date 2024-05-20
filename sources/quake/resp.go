@@ -2,8 +2,8 @@ package quake
 
 // QuakeSearchResult Quake service data interface return data structure
 type QuakeSearchResult struct {
-	Code    int    `json:"code,omitempty"`
-	Message string `json:"message,omitempty"`
+	Code    interface{} `json:"code,omitempty"`
+	Message string      `json:"message,omitempty"`
 	Data    []struct {
 		Service struct {
 			Http struct {
