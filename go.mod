@@ -3,7 +3,7 @@ module github.com/N0el4kLs/cyberetrieve
 go 1.21
 
 require (
-	github.com/imroc/req/v3 v3.43.1
+	github.com/imroc/req/v3 v3.43.4
 	github.com/projectdiscovery/gologger v1.1.12
 )
 
